@@ -1,0 +1,8 @@
+---
+ - name: restart apache2
+   service: name=apache2 state=restarted
+   become: yes
+
+ - name: restart jenkins
+   service: name=jenkins state=restarted
+   become: yes

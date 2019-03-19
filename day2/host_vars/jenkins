@@ -1,0 +1,10 @@
+---
+plugins:
+  - 'git'
+  - 'copyartifact'
+  - 'build-pipeline-plugin'
+
+email:
+  smtp_host: 'smtp.gmail.com'
+  smtp_ssl: 'true'
+  default_email_suffix: 'andrii.tverdokhlib@gmail.com'

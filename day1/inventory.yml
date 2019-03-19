@@ -1,0 +1,14 @@
+---
+
+ - hosts: all 
+    
+   tasks:        
+    - name: "Show architecture and CPU info"
+      debug:
+       msg: |
+        arch: {{ ansible_facts.architecture }}
+        cores: {{ ansible_facts.processor_cores }}
+        count: {{ ansible_facts.processor_count }}
+        threads_per_core: {{ ansible_facts.processor_threads_per_core }}
+        vcpus: {{ ansible_facts.processor_vcpus }} 
+

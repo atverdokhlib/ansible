@@ -1,0 +1,9 @@
+<VirtualHost *:80>
+  <Proxy *>
+        Order deny,allow
+        Allow from all
+  </Proxy>
+
+       ProxyPass / http://192.168.56.102:8080/
+       ProxyPassReverse / http://192.168.56.102:8080/
+</VirtualHost>

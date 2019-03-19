@@ -1,0 +1,21 @@
+---
+ - name: "Add group Jenkins"
+   become: yes
+   group:
+    name: jenkins
+    state: present
+
+ - name: "Create user jenkins"
+   become: yes
+   user:
+    name: jenkins
+    groups: jenkins
+
+ - name: Create the /var/lib/Jenkins directory
+   become: yes
+   file:
+    path=/var/lib/Jenkins/
+    owner={{juser}}
+    group={{jgroup}}
+    mode=0777
+    state=directory

@@ -1,0 +1,77 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+          
+   - name: install apache2
+     apt: name=apache2 update_cache=yes state=latest
+   
+   - name: enabled proxy
+     apache2_module: name=proxy state=present
+     notify:
+      - restart apache2
+   
+   - name: enabled proxy_http
+     apache2_module: name=proxy_http state=present
+     notify:
+      - restart apache2 
+   
+   - name: enabled headers
+     apache2_module: name=proxy state=present
+     notify:
+      - restart apache2
+
+   - name: Apache | Disable the default site
+     action: command a2dissite 000-default
+     ignore_errors: yes
+
+   - name: Apache | Compile Apache Jenkins configuration
+     template: src=apache.conf.j2 dest=/etc/apache2/sites-available/jenkins.conf
+
+   - name: Apache | Enable our Jenkins site
+     action: command a2ensite jenkins
+     notify:
+        - restart apache2 
+
+  handlers:
+   - name: restart apache2
+     service: name=apache2 state=restarted     
+- hosts: appservers
+  become: yes
+  tasks:   
+ 
+   - name: ensure the repository is configured Java
+     apt_repository: repo='ppa:openjdk-r/ppa' state=present
+     become: yes
+
+   - name: Install packages and dependencies
+     apt: name={{ item }} update_cache=yes state=installed
+     with_items:
+      - openjdk-8-jdk
+      - libfontconfig
+      - libffi-dev
+      - libncurses5-dev
+        
+   - name: ensure the repository is configured
+     apt_repository: repo='deb https://pkg.jenkins.io/debian-stable binary/' state=present
+     become: yes
+
+   - name: ensure jenkins is installed
+     apt: name=jenkins update_cache=yes force=yes
+     become: yes
+
+   - name: ensure jenkins is running
+     service: name=jenkins state=started
+   
+   - name: Add the user 'devops' with a bash shell, appending the group 'jenkins'
+     user:
+      name: devops
+      shell: /bin/bash
+      groups: jenkins
+      append: yes
+     
+   - name: Jenkins password
+     fetch: 
+       src: /var/lib/jenkins/secrets/initialAdminPassword
+       dest: ~/.ansible/day1/initialAdminPassword
+

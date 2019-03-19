@@ -1,0 +1,28 @@
+---
+    - name: "Add group devops" 
+      become: yes 
+      group: 
+       name: devops 
+       state: present  
+    
+    - name: "Create user devops"
+      become: yes
+      user: 
+       name: devops
+       groups: devops
+
+    - name: Allow wheel group to have passwordless sudo
+      become: yes
+      lineinfile:
+       dest: /etc/sudoers
+       state: present
+       regexp: '^%devops'
+       line: '%devops ALL=(ALL) NOPASSWD: ALL'
+
+    - name: Set authorized key taken from file
+      become: yes
+      authorized_key:
+       user: devops
+       state: present
+       key: "{{ lookup('file', '~/.ansible/.ssh/id_rsa.pub') }}"
+

@@ -1,0 +1,17 @@
+---
+- hosts: all
+  roles:
+    - common
+    - devops_user
+
+- hosts: jenkins
+  vars: 
+   juser: jenkins
+   jgroup: jenkins
+  roles:
+    - java
+    - jenkins
+
+- hosts: webservers
+  roles:
+    - httpd

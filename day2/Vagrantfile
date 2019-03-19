@@ -1,0 +1,41 @@
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = ["~/.ansible/.ssh/id_rsa", "~/.vagrant.d/insecure_private_key"]
+  config.vm.provision "file", source: "~/.ansible/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.vm.synced_folder '.', '/vagrant', disabled: true 
+  config.vm.provision "shell", inline: <<-EOC
+       sudo sed -i -e "\\#PasswordAuthentication yes# s#PasswordAuthentication yes#PasswordAuthentication no#g" /etc/ssh/sshd_config
+       sudo service ssh restart
+   EOC
+
+  config.vm.define "web2" do |web2|
+    web2.vm.box = "ubuntu/bionic64"
+    web2.vm.hostname = 'web2'
+
+    web2.vm.network :private_network, ip: "192.168.56.110"
+    web2.vm.network :forwarded_port, guest: 22, host: 11022, id: "ssh"
+    web2.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "web2"]
+      v.customize ["modifyvm", :id, "--uartmode1", "disconnected" ]
+    end
+  end
+
+  config.vm.define "app" do |app|
+    app.vm.box = "ubuntu/bionic64"
+    app.vm.hostname = 'jenkins'
+
+    app.vm.network :private_network, ip: "192.168.56.112"
+    app.vm.network :forwarded_port, guest: 22, host: 12022, id: "ssh"
+
+    app.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "jenkins"]
+      v.customize ["modifyvm", :id, "--uartmode1", "disconnected" ]
+    end
+  end
+end
+

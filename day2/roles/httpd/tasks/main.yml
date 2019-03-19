@@ -1,0 +1,61 @@
+---
+   - name: install apache2
+     become: true
+     apt: name=apache2 update_cache=yes state=latest
+   
+   - name: enabled proxy
+     apache2_module: name=proxy state=present
+     become: true
+     notify:
+      - restart apache2
+   
+   - name: enabled proxy_http
+     apache2_module: name=proxy_http state=present
+     become: true
+     notify:
+      - restart apache2 
+   
+   - name: enabled headers
+     apache2_module: name=proxy state=present
+     become: true
+     notify:
+      - restart apache2
+
+   - name: Apache | Disable the default site
+     become: true
+     action: command a2dissite 000-default
+     ignore_errors: yes
+
+   - name: Apache | Compile Apache Jenkins configuration
+     become: true
+     template: src=apache.conf.j2 dest=/etc/apache2/sites-available/jenkins.conf
+
+   - name: Apache | Enable our Jenkins site
+     action: command a2ensite jenkins
+     become: true
+     notify:
+      - restart apache2
+    
+   - name: verify Apache service
+     command: systemctl status apache2 
+     register: apache_status
+     ignore_errors: True
+   
+   - debug:
+      msg: "Failed - Httpd is stoped"
+     when: apache_status is failed
+   - debug:
+      msg: "Success - Httpd is runned"
+     when: apache_status is success
+   
+   - name: Check if apache is installed
+     command: apache2 -v
+     register: apache_result
+     ignore_errors: True
+
+   - debug:
+      msg: "Failed - Httpd is not installed"
+     when: apache_result is failed
+   - debug:
+      msg: "Success - Httpd is installed"
+     when:  apache_result is success
